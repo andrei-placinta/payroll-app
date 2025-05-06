@@ -1,0 +1,57 @@
+CREATE USER STUDENT IDENTIFIED BY STUDENT;
+GRANT CREATE SESSION,RESOURCE TO STUDENT;
+
+SET AUTOCOMMIT ON;
+
+CREATE TABLE tabela1 (
+NRCRT NUMBER PRIMARY KEY,
+NUME VARCHAR2(20)  NOT NULL,
+PRENUME VARCHAR2(20)  NOT NULL,
+FUNCTIE  VARCHAR2(20)  NOT NULL,
+SALAR_BAZA NUMBER NOT NULL,
+SPOR_ NUMBER DEFAULT 10 NOT NULL,
+PREMII_BRUTE NUMBER DEFAULT 0 NOT NULL,
+TOTAL_BRUT NUMBER,
+BRUT_IMPOZABIL NUMBER,
+IMPOZIT NUMBER,
+CAS NUMBER,
+CASS NUMBER,
+RETINERI NUMBER DEFAULT 0 NOT NULL,
+VIRAT_CARD NUMBER
+);
+
+CREATE OR REPLACE TRIGGER tr1
+BEFORE INSERT or UPDATE ON tabela1
+FOR EACH ROW
+DECLARE
+p1 number;
+p2 number;
+p3 number;
+BEGIN
+SELECT CAS_ into p1 from procent1;
+SELECT CASS_ into p2 from procent1;
+SELECT IMPOZIT_ into p3 from procent1;
+:new.total_brut:=:new.salar_baza*(1+:new.spor_/100)+:new.premii_brute;
+:new.cas:=:new.total_brut*p1;
+:new.cass:=:new.total_brut*p2;
+:new.brut_impozabil:=:new.total_brut-:new.cas-:new.cass;
+:new.impozit:=:new.brut_impozabil*p3;
+:new.virat_card:=:new.total_brut-:new.impozit-:new.cas-:new.cass-:new.retineri;
+EXCEPTION
+WHEN OTHERS THEN
+RAISE_APPLICATION_ERROR(‐20000, 'DUPLICAT');  
+END;
+/
+
+CREATE TABLE procent1 (
+parola VARCHAR(20) DEFAULT 'student' NOT NULL,
+CAS_ NUMBER DEFAULT 0.25 NOT NULL,
+CASS_ NUMBER DEFAULT 0.1 NOT NULL,
+IMPOZIT_ NUMBER DEFAULT 0.1 NOT NULL
+);
+insert into procent1 VALUES(DEFAULT,DEFAULT,DEFAULT,DEFAULT);
+
+INSERT INTO TABELA1(nrcrt,NUME,PRENUME,FUNCTIE,SALAR_BAZA) VALUES ((SELECT nvl(max(nrcrt), 0) + 1 from tabela1),'Popescu','Ion','Inginer',4000);
+INSERT INTO TABELA1(nrcrt,NUME,PRENUME,FUNCTIE,SALAR_BAZA) VALUES ((SELECT nvl(max(nrcrt), 0) + 1 from tabela1),'Ion','Ionica','Director',900000);
+INSERT INTO TABELA1(nrcrt,NUME,PRENUME,FUNCTIE,SALAR_BAZA) VALUES ((SELECT nvl(max(nrcrt), 0) + 1 from tabela1),'Dan','Daniel','Contabil',850000);
+SELECT * FROM TABELA1;
